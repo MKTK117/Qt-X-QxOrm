@@ -1,0 +1,36 @@
+# Build
+build/
+*/build/
+
+# Generated code
+sql/
+cpp_model/
+cpp_view_model/
+cpp_services/
+cpp_services_server/
+
+# Binaries
+bin/
+*.exe
+*.dll
+*.lib
+*.obj
+
+# IDE
+.vscode/
+*.user
+*.suo
+*.vs/
+
+# DB (local)
+sql/*.db
+sql/*.sqlite
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+
+# Generated Qt artifacts
+*.gen.h
+*.gen.cpp
