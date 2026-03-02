@@ -5,6 +5,7 @@ import QtQuick.Controls.Material
 import Fluo
 
 ApplicationWindow {
+    id: mainScene
     visible: true
     width: 1100
     height: 680
@@ -14,6 +15,8 @@ ApplicationWindow {
     Material.accent: Material.Teal
     Material.primary: Material.BlueGrey
     Material.foreground: "#e0e0e0"
+
+    property bool showAllProjects: false
 
     Rectangle {
         anchors.fill: parent
@@ -40,11 +43,61 @@ ApplicationWindow {
             }
 
             ToolButton {
-                text: "Refresh"
-                icon.name: "refresh"
+                text: "Insert User"
                 onClicked: {
-                    projectModel.refresh();
-                    userModel.refresh();
+                    userInsertPanel.open();
+                    console.log("User modal opening...");
+                }
+            }
+
+            Dialog {
+                id: userInsertPanel
+                title: "Insert User"
+                standardButtons: Dialog.Ok | Dialog.Cancel
+                modal: true
+                anchors.centerIn: Overlay.overlay
+                width: 350
+                height: 350
+
+                TextField {
+                    id: userNameField
+                    placeholderText: qsTr("Enter User Name")
+                }
+
+                onAccepted: console.log("Project: " + userNameField.text + " saved!")
+                onRejected: console.log("Cancel clicked")
+            }
+
+            ToolButton {
+                text: "Insert Project"
+                onClicked: {
+                    projectInsertPanel.open();
+                    console.log("Project model opening...");
+                }
+            }
+
+            Dialog {
+                id: projectInsertPanel
+                title: "Insert Project"
+                standardButtons: Dialog.Ok | Dialog.Cancel
+                modal: true
+                anchors.centerIn: Overlay.overlay
+                width: 350
+                height: 350
+
+                TextField {
+                    id: projectNameField
+                    placeholderText: qsTr("Enter Project Name")
+                }
+
+                onAccepted: console.log("Project: " + projectNameField.text + " saved!")
+                onRejected: console.log("Cancel clicked")
+            }
+
+            ToolButton {
+                text: "Refresh"
+                onClicked: {
+                    AppController.refreshAll();
                     console.log("Refresh requested");
                 }
             }
@@ -106,7 +159,7 @@ ApplicationWindow {
                             onClicked: function (mouse) {
                                 if (mouse.button === Qt.LeftButton) {
                                     console.log("Left clicked:", model.name);
-                                    active = !active;
+                                    AppController.setActiveUser(model.User_id);
                                 } else if (mouse.button === Qt.RightButton) {
                                     console.log("Right clicked:", model.name);
                                     appController.deleteProjectByName(model.name);
@@ -140,12 +193,25 @@ ApplicationWindow {
             Layout.fillHeight: true
             Layout.preferredWidth: 320
             spacing: 8
+            RowLayout {
+                spacing: 10
 
-            Label {
-                text: "Projects"
-                font.pixelSize: 18
-                font.bold: true
-                color: Material.accent
+                Label {
+                    text: "Projects"
+                    font.pixelSize: 18
+                    font.bold: true
+                    color: Material.accent
+                }
+                // Expander
+
+                Item {
+                    Layout.fillWidth: true
+                }
+                Switch {
+                    text: qsTr("Show all Projects")
+                    checked: showAllProjects
+                    onClicked: showAllProjects = !showAllProjects
+                }
             }
 
             Frame {
@@ -156,7 +222,7 @@ ApplicationWindow {
                 TableView {
                     id: projectsTable
                     anchors.fill: parent
-                    model: AppController.project
+                    model: showAllProjects ? AppController.project : AppController.activeProjects
                     clip: true
 
                     ScrollBar.vertical: ScrollBar {}
