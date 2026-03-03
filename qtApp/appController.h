@@ -25,14 +25,14 @@ class AppController : public QObject, public QSingleton<AppController> {
 
 public:
 
-	Q_INVOKABLE void insertProject(const QString& name);
+	Q_INVOKABLE void insertProject(const QString& name, long userId);
 	qx::QxModel<Project>* getProject();
 	Q_INVOKABLE void insertUser(const QString& name);
 	qx::QxModel<User>* getUser();
 	Q_INVOKABLE void refreshAll();
 	Q_INVOKABLE void setActiveUser(long id);
 	qx::QxModel<Project>* activeProjects();
-
+	Q_INVOKABLE void deleteUser(long userId);
 
 
 signals:

@@ -19,12 +19,20 @@ AppController::AppController(QObject* parent) : QObject(parent) {
 }
 AppController::~AppController() {}
 
-void AppController::insertProject(const QString& name) {
+void AppController::insertProject(const QString& name, long userId) {
 	Project_ptr project;
 
 	project.reset(new Project());
 	project->setname(name);
 	project->setcreationDate(QDateTime::currentDateTime());
+	if (userId > 0) {
+		User_ptr user(new User());
+		user.get()->setUser_id(userId);
+		project.get()->setuser(user);
+	}
+
+
+
 	qx::dao::insert(project);
 	emit projectChanged();
 }
@@ -66,4 +74,28 @@ void AppController::setActiveUser(long userId)
 qx::QxModel<Project>* AppController::activeProjects()
 {
 	return _activeUserProjectsModel;
+}
+
+void AppController::deleteUser(long userId)
+{
+	if (userId <= 0) {
+		return;
+	}
+
+	qx::QxSqlQuery q;
+	q.query("WHERE user = :id");
+	q.bind(":id", QVariant::fromValue(userId));
+	qx::dao::delete_by_query<Project>(q);
+
+	// Use dummy user to find actual user by id
+	User_ptr user;
+	user.reset(new User());
+	user->setUser_id(userId);
+	qx::dao::delete_by_id(user);
+
+	refreshAll();
+	emit userChanged();
+	emit projectChanged();
+
+	if (_activeUserId == userId) { _activeUserId = -1; _activeUserProjectsModel->clear(); }
 }

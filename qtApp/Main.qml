@@ -16,6 +16,7 @@ ApplicationWindow {
     Material.primary: Material.BlueGrey
     Material.foreground: "#e0e0e0"
 
+    property int currentActiveUserId: -1
     property bool showAllProjects: false
 
     Rectangle {
@@ -64,7 +65,10 @@ ApplicationWindow {
                     placeholderText: qsTr("Enter User Name")
                 }
 
-                onAccepted: console.log("Project: " + userNameField.text + " saved!")
+                onAccepted: {
+                    AppController.insertUser(userNameField.text);
+                    console.log("User: " + userNameField.text + " saved!");
+                }
                 onRejected: console.log("Cancel clicked")
             }
 
@@ -83,14 +87,29 @@ ApplicationWindow {
                 modal: true
                 anchors.centerIn: Overlay.overlay
                 width: 350
-                height: 350
+                height: 200
+                RowLayout {
+                    spacing: 30
 
-                TextField {
-                    id: projectNameField
-                    placeholderText: qsTr("Enter Project Name")
+                    TextField {
+                        id: projectNameField
+                        placeholderText: qsTr("Enter Project Name")
+                    }
+                    ComboBox {
+                        id: userDropDown
+                        model: AppController.user
+
+                        textRole: "name"
+                        valueRole: "User_id"
+                        Layout.fillWidth: true
+                    }
                 }
 
-                onAccepted: console.log("Project: " + projectNameField.text + " saved!")
+                onAccepted: {
+                    console.log("Trying to add project...");
+                    AppController.insertProject(projectNameField.text, userDropDown.currentValue);
+                    console.log("Project: " + projectNameField.text + " saved!");
+                }
                 onRejected: console.log("Cancel clicked")
             }
 
@@ -136,12 +155,15 @@ ApplicationWindow {
                     ScrollBar.vertical: ScrollBar {}
 
                     delegate: Rectangle {
+                        id: userDelegate
                         implicitHeight: 52
                         implicitWidth: projectsTable.width
-
-                        color: active ? Material.primary : index % 2 === 0 ? Qt.rgba(1, 1, 1, 0.04) : Qt.rgba(0, 0, 0, 0.03)
                         border.color: "#404040"
                         border.width: 1
+
+                        readonly property bool isActive: User_id === currentActiveUserId
+
+                        color: isActive ? Material.primary : index % 2 === 0 ? Qt.rgba(1, 1, 1, 0.04) : Qt.rgba(0, 0, 0, 0.03)
 
                         Rectangle {
                             anchors.fill: parent
@@ -157,13 +179,17 @@ ApplicationWindow {
                             acceptedButtons: Qt.LeftButton | Qt.RightButton
 
                             onClicked: function (mouse) {
-                                if (mouse.button === Qt.LeftButton) {
-                                    console.log("Left clicked:", model.name);
-                                    AppController.setActiveUser(model.User_id);
-                                } else if (mouse.button === Qt.RightButton) {
+                                if (mouse.button === Qt.RightButton) {
                                     console.log("Right clicked:", model.name);
-                                    appController.deleteProjectByName(model.name);
+                                    AppController.deleteUser(model.User_id);
                                 }
+
+                                if (currentActiveUserId === model.User_id) {
+                                    currentActiveUserId = -1;
+                                } else {
+                                    currentActiveUserId = model.User_id;
+                                }
+                                AppController.setActiveUser(currentActiveUserId);
                             }
                         }
 
